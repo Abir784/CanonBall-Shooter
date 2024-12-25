@@ -14,11 +14,12 @@ v0 = 85
 angle = 45 
 bullets = []
 aliens = [] 
-alien_speed = 0.05
-alien_spawn_time = 80
+alien_speed = 0.05 
+alien_spawn_time = 120
 alien_timer = 0
 score = 0
-
+GameOver=False
+ 
 def zone_check(x0,y0,x1,y1):
     x_t0 = x0
     x_t1 = x1
@@ -125,7 +126,7 @@ def showbullet():
 
 
 
-def compute_barrel_endpoints(x0, y0, length, angle):
+def updated_points(x0, y0, length, angle):
     angle_rad = math.radians(angle)
     x1 = x0 + length * math.cos(-angle_rad)
     y1 = y0 + length * math.sin(-angle_rad)
@@ -135,9 +136,8 @@ def draw_cannon():
     global angle
     x1,y1=700,50
     mpc(x1, y1, 30)  # 
-    glColor3f(0, 1, 0)  # Green
     barrel_length = 100
-    x0, y0 = compute_barrel_endpoints(x1, y1, -barrel_length, angle)  
+    x0, y0 = updated_points(x1, y1, -barrel_length, angle)  
     mpl(int(x0), int(y0)+10, int(x1), int(y1)+30)
     mpl(int(x0), int(y0)-10, int(x1), int(y1)-30)
     mpc(x0,y0,10)
@@ -167,47 +167,63 @@ def collision_check():
                 aliens.remove(j)
 
 
+def collision_check_with_canon():
+    global aliens, angle, score,GameOver
+    for i in aliens:
+        x1, y1 = updated_points(700, 50, -100, angle)
+        distance1 = ((i['x']-x1)**2 + (i['y'] - y1)**2)**0.5
+        distance2 = ((i['x']-700)**2 + (i['y'] - 50)**2)**0.5
+        if (distance1 <=10) or (distance2 <=50):
+            GameOver=True
+            print('GameOver')
+            print('Score:',score)
+            score=0
+            aliens=[]
 def animate():
     global bullets, alien_timer
     new_bullets = []
-    for bullet in bullets:
-        t = bullet['t']
-        px = bullet['x'] - bullet['vx'] * t
-        py = bullet['y'] + bullet['vy'] * t - 0.5 * g * t ** 2
-        bullet['current_x'] = px
-        bullet['current_y'] = py
+    if GameOver==False:
+        for bullet in bullets:
+            t = bullet['t']
+            px = bullet['x'] - bullet['vx'] * t
+            py = bullet['y'] + bullet['vy'] * t - 0.5 * g * t ** 2
+            bullet['current_x'] = px
+            bullet['current_y'] = py
 
-        if px >= -1 and py >= -1:
-            bullet['t'] += 0.02  
-            new_bullets.append(bullet)
+            if px >= -1 and py >= -1:
+                bullet['t'] += 0.02  
+                new_bullets.append(bullet)
 
-    bullets = new_bullets
+        bullets = new_bullets
 
-    for alien in aliens:
-        alien['x'] += alien_speed 
+        for alien in aliens:
+            alien['x'] += alien_speed 
 
-    alien_timer += 1
-    if alien_timer >= alien_spawn_time:
-        spawn_alien()
-        alien_timer = 0
+        alien_timer += 1
+        if alien_timer >= alien_spawn_time:
+            spawn_alien()
+            alien_timer = 0
 
-    collision_check()
+        collision_check()
+    
     
     glutPostRedisplay()
 
 
 def keyboardListener(key, x, y):
-    global angle, bullets
+    global angle, bullets,GameOver
+    if GameOver==False:
+        if key == b' ': 
+            vx = v0 * math.cos(math.radians(angle))
+            vy = v0 * math.sin(math.radians(angle))
+            x1, y1 = updated_points(700, 50, -100, angle)
+            bullets.append({'x':x1,'y':y1,"vx":vx,"vy":vy,"t":0,"currnet_x":x1 ,"current_y":y1})
+        elif key == b'w':  
+            angle = min(angle + 5, 90) 
+        elif key == b's':  
+            angle = max(angle - 5, 0)
 
-    if key == b' ': 
-        vx = v0 * math.cos(math.radians(angle))
-        vy = v0 * math.sin(math.radians(angle))
-          
-        bullets.append({'x':600,'y':50,"vx":vx,"vy":vy,"t":0,"currnet_x":600 ,"current_y":50})
-    elif key == b'w':  
-        angle = min(angle + 5, 90) 
-    elif key == b's':  
-        angle = max(angle - 5, 0)
+   
     glutPostRedisplay()
 
 def mouseListener(button, state, x, y):	
@@ -231,8 +247,10 @@ def mouseListener(button, state, x, y):
                     elif width-50 <= x <= width:
                         print("exited")
                         os._exit(0)
-                    
-     
+
+    if button == GLUT_LEFT_BUTTON:
+        if state == GLUT_DOWN:
+            print(x,y)        
 
     glutPostRedisplay()
 
@@ -245,35 +263,40 @@ def iterate():
     glLoadIdentity()
 
 def display():
-    global bullets
+    global bullets,GameOver
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glClearColor(0.0, 0.0, 0.0, 0.0)
     
     glLoadIdentity()
     gluLookAt(0, 0, 200, 0, 0, 0, 0, 1, 0)
     iterate()
-
-
-    # my work
-    # navigation_bar()
-    showbullet()
-    glPointSize(1)
+    collision_check_with_canon()
+    glColor(0,1,0)
+    if GameOver:
+        glColor(1,0,0)
+    glPointSize(2)
     glBegin(GL_POINTS)
-    glColor(1,0,0)
     draw_cannon()
-    for alien in aliens:
-        draw_alien(alien['x'], alien['y'])
     glEnd()
+
+    if GameOver == False:
+        showbullet()
+        glPointSize(1)
+        glBegin(GL_POINTS)
+        glColor(1,0,0)
+        for alien in aliens:
+            draw_alien(alien['x'], alien['y'])
+        glEnd()
     glutSwapBuffers()  
 
 glutInit()
 glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
 glutInitWindowSize(width, height)  
 glutInitWindowPosition(0, 0)
-wind = glutCreateWindow(b"Lab Assignment 2")
+wind = glutCreateWindow(b"Cannon Ball Game")
 glutDisplayFunc(display)
 glutIdleFunc(animate)
 # glutSpecialFunc(specialKeyListener)
-# glutMouseFunc(mouseListener)
+glutMouseFunc(mouseListener)
 glutKeyboardFunc(keyboardListener)
 glutMainLoop()
