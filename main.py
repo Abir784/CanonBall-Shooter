@@ -113,7 +113,7 @@ def mpc(cx, cy, r):
 
 
 def draw_projectile(x, y):
-    r = 20
+    r = 5
     glColor3f(0.0, 1.0, 0.0)
     glPointSize(2)
     glBegin(GL_POINTS)
