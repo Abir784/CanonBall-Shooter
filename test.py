@@ -19,6 +19,9 @@ alien_spawn_time = 80
 alien_timer = 0
 score = 0
 bullet_speed = 0.05
+flag = True
+
+
 
 def zone_check(x0,y0,x1,y1):
     x_t0 = x0
@@ -143,19 +146,19 @@ def draw_cannon():
     mpl(int(x0), int(y0)-10, int(x1), int(y1)-30)
     mpc(x0,y0,10)
 
-
 def draw_alien(x,y):
     r = 10
     mpc(x,y,r)
-    mpl(x-r,y,x,40)
-    mpl(x,40,x+r,y)
+    mpl(x-r,y,x,y-40)
+    mpl(x,y-40,x+r,y)
 
 def spawn_alien():
     x = random.randint(30,200)
-    aliens.append({'x': x, 'y': 80})
+    y = 80
+    aliens.append({'x': x, 'y': y})
 
 def collision_check():
-    global bullets, aliens,score
+    global bullets, aliens,score, alien_spawn_time,alien_speed,flag
 
     for i in bullets:
 
@@ -164,8 +167,30 @@ def collision_check():
 
             if distance <= 20:
                 score += 1
-                bullets.remove(i)
-                aliens.remove(j)
+                if i in bullets:
+                    bullets.remove(i)
+                if j in aliens:
+                    aliens.remove(j)
+    
+    if score == 30 and flag:
+        alien_spawn_time -= 30
+        alien_speed += 2
+        flag = False
+        print(score)
+    if score == 20 and flag:
+        alien_spawn_time -=10
+        alien_speed += 0.5
+        flag = False
+        print(score)
+    elif score == 10 and flag:
+        alien_spawn_time -=10
+        alien_speed += 0.5
+        flag = False
+        print(score)
+    elif 20>score>10:
+        flag = True
+    elif 30>score>20:
+        flag = True
 
 
 def animate():
@@ -199,19 +224,23 @@ def animate():
 
 def keyboardListener(key, x, y):
     global angle, bullets
-    x = 650
-    y = 120
+
+
+
+    cannon_base_x, cannon_base_y = 700, 50
+    barrel_length = 100
+    bullet_x, bullet_y = compute_barrel_endpoints(cannon_base_x, cannon_base_y, -barrel_length, angle)
+    
 
     if key == b' ': 
         vx = v0 * math.cos(math.radians(angle))
         vy = v0 * math.sin(math.radians(angle))
           
-        bullets.append({'x':x,'y':y,"vx":vx,"vy":vy,"t":0,"currnet_x":x,"current_y":y})
+        bullets.append({'x':bullet_x,'y':bullet_y,"vx":vx,"vy":vy,"t":0,"currnet_x":bullet_x,"current_y":bullet_y})
     elif key == b'w':  
         angle = min(angle + 5, 90)
     elif key == b's':  
         angle = max(angle - 5, 0)
-        x -= 5
     glutPostRedisplay()
 
 def mouseListener(button, state, x, y):	
