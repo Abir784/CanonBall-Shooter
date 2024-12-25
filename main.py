@@ -8,6 +8,7 @@ height = 600
 width = 800
 
 
+barrel_angle = 45
 
 g = 9.8 
 v0 = 85
@@ -137,7 +138,39 @@ def draw_allien():
     mpl(35,90,45,95) #antena
 
 
+# def compute_barrel_endpoints(x0, y0, length, angle):
+#     angle_rad = math.radians(angle)
+#     x1 = x0 + length * math.cos(angle_rad)
+#     y1 = y0 + length * math.sin(angle_rad)
+#     return x1, y1
 
+def draw_cannon():
+
+
+    mpc(700,50,30)
+    mpc(600,50,10)
+    mpl(600,60,700,80)
+    mpl(600,40,700,20)
+
+# def draw_cannon():
+#     global barrel_angle
+
+#     # Draw the wheels
+#     glColor3f(1, 1, 1)  # Dark gray
+#     mpc(700, 50, 30)  # Right wheel
+#     mpc(600, 50, 10)  # Left wheel
+
+#     # Draw the barrel
+#     glColor3f(1, 1, 0.7)  # Light gray
+#     x0, y0 = 600, 50  # Base of the barrel
+#     barrel_length = 100
+
+#     # Compute the endpoint of the barrel based on the rotation angle
+#     x1, y1 = compute_barrel_endpoints(x0, y0, barrel_length, barrel_angle)
+
+#     # Use the mpl function to draw the barrel
+#     mpl(x0, y0+10, int(x1), int(y1)+30)
+#     mpl(x0, y0-10, int(x1), int(y1)-30)
     
 
 def keyboardListener(key, x, y):
@@ -220,6 +253,7 @@ def display():
     glBegin(GL_POINTS)
     glColor(1,0,0)
     draw_allien()
+    draw_cannon()
     glEnd()
     glutSwapBuffers()  
 
@@ -237,4 +271,3 @@ glutDisplayFunc(display)
 glutKeyboardFunc(keyboardListener)
 glutTimerFunc(10, timer, 0)
 glutMainLoop()
-
