@@ -8,14 +8,13 @@ height = 600
 width = 800
 
 
-barrel_angle = 45
 
 g = 9.8 
 v0 = 85
 angle = 45 
 bullets = []
 aliens = [] 
-alien_speed = 0.5
+alien_speed = 0.05
 alien_spawn_time = 80
 alien_timer = 0
 score = 0
@@ -30,7 +29,7 @@ def zone_check(x0,y0,x1,y1):
     if x1 != x0:
         dx = x1 - x0
     slope = dy/dx
-    line_pixels = []
+    line_pixels = []      
     zone1 = zone2 = zone3 = False
     if slope>1:
         x_t0 = y0
@@ -124,6 +123,26 @@ def showbullet():
         py = bullet['y'] + bullet['vy'] * t - 0.5 * g * t ** 2
         draw_projectile(px, py)
 
+
+
+def compute_barrel_endpoints(x0, y0, length, angle):
+    angle_rad = math.radians(angle)
+    x1 = x0 + length * math.cos(-angle_rad)
+    y1 = y0 + length * math.sin(-angle_rad)
+    return x1, y1
+
+def draw_cannon():
+    global angle
+    x1,y1=700,50
+    mpc(x1, y1, 30)  # 
+    glColor3f(0, 1, 0)  # Green
+    barrel_length = 100
+    x0, y0 = compute_barrel_endpoints(x1, y1, -barrel_length, angle)  
+    mpl(int(x0), int(y0)+10, int(x1), int(y1)+30)
+    mpl(int(x0), int(y0)-10, int(x1), int(y1)-30)
+    mpc(x0,y0,10)
+
+
 def draw_alien(x,y):
     r = 10
     mpc(x,y,r)
@@ -135,7 +154,7 @@ def spawn_alien():
     aliens.append({'x': x, 'y': 80})
 
 def collision_check():
-    global bullets, aliens
+    global bullets, aliens,score
 
     for i in bullets:
 
@@ -158,43 +177,8 @@ def animate():
         bullet['current_x'] = px
         bullet['current_y'] = py
 
-
-# def compute_barrel_endpoints(x0, y0, length, angle):
-#     angle_rad = math.radians(angle)
-#     x1 = x0 + length * math.cos(angle_rad)
-#     y1 = y0 + length * math.sin(angle_rad)
-#     return x1, y1
-
-def draw_cannon():
-
-
-    mpc(700,50,30)
-    mpc(600,50,10)
-    mpl(600,60,700,80)
-    mpl(600,40,700,20)
-
-# def draw_cannon():
-#     global barrel_angle
-
-#     # Draw the wheels
-#     glColor3f(1, 1, 1)  # Dark gray
-#     mpc(700, 50, 30)  # Right wheel
-#     mpc(600, 50, 10)  # Left wheel
-
-#     # Draw the barrel
-#     glColor3f(1, 1, 0.7)  # Light gray
-#     x0, y0 = 600, 50  # Base of the barrel
-#     barrel_length = 100
-
-#     # Compute the endpoint of the barrel based on the rotation angle
-#     x1, y1 = compute_barrel_endpoints(x0, y0, barrel_length, barrel_angle)
-
-#     # Use the mpl function to draw the barrel
-#     mpl(x0, y0+10, int(x1), int(y1)+30)
-#     mpl(x0, y0-10, int(x1), int(y1)-30)
-
         if px >= -1 and py >= -1:
-            bullet['t'] += 0.08
+            bullet['t'] += 0.02  
             new_bullets.append(bullet)
 
     bullets = new_bullets
@@ -205,7 +189,8 @@ def draw_cannon():
     alien_timer += 1
     if alien_timer >= alien_spawn_time:
         spawn_alien()
-        alien_timer = 
+        alien_timer = 0
+
     collision_check()
     
     glutPostRedisplay()
@@ -217,7 +202,8 @@ def keyboardListener(key, x, y):
     if key == b' ': 
         vx = v0 * math.cos(math.radians(angle))
         vy = v0 * math.sin(math.radians(angle))
-        bullets.append({'x':750,'y':50,"vx":vx,"vy":vy,"t":0,"currnet_x":750,"current_y":50})
+          
+        bullets.append({'x':600,'y':50,"vx":vx,"vy":vy,"t":0,"currnet_x":600 ,"current_y":50})
     elif key == b'w':  
         angle = min(angle + 5, 90) 
     elif key == b's':  
@@ -267,16 +253,14 @@ def display():
     gluLookAt(0, 0, 200, 0, 0, 0, 0, 1, 0)
     iterate()
 
+
     # my work
     # navigation_bar()
     showbullet()
     glPointSize(1)
     glBegin(GL_POINTS)
     glColor(1,0,0)
-
-    draw_allien()
     draw_cannon()
-
     for alien in aliens:
         draw_alien(alien['x'], alien['y'])
     glEnd()
@@ -293,4 +277,3 @@ glutIdleFunc(animate)
 # glutMouseFunc(mouseListener)
 glutKeyboardFunc(keyboardListener)
 glutMainLoop()
-
