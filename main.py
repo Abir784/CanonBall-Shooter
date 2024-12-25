@@ -17,14 +17,14 @@ v0 = 85
 angle = 45 
 bullets = []
 aliens = [] 
-
 alien_speed = 0.5
-alien_spawn_time = 80
+alien_spawn_time = 120
 alien_timer = 0
 score = 0
+GameOver=False
 bullet_speed = 0.05
 flag = True
-
+ 
 def zone_check(x0,y0,x1,y1):
     x_t0 = x0
     x_t1 = x1
@@ -161,8 +161,6 @@ def draw_cannon():
     mpl(int(x0), int(y0)-10, int(x1), int(y1)-30)
     mpc(x0,y0,10)
 
-
-# Draw the asteroid using generated vertices
 def draw_asteroid():
     global x_astro,y_astro
     glPointSize(2)
@@ -214,22 +212,18 @@ def fall_asterroid():
                         break
         
 
-
 def draw_alien(x,y):
     r = 10
     mpc(x,y,r)
-    mpl(x-r,y,x,y-40)
-    mpl(x,y-40,x+r,y)
+    mpl(x-r,y,x,40)
+    mpl(x,40,x+r,y)
 
 def spawn_alien():
     x = random.randint(30,200)
-    y = 80
-    aliens.append({'x': x, 'y': y})
+    aliens.append({'x': x, 'y': 80})
 
 def collision_check():
     global bullets, aliens,score, alien_spawn_time,alien_speed,flag,power_up_asteroid
-
-#     global bullets, aliens,score,power_up_asteroid
 
     for i in bullets:
 
@@ -237,7 +231,8 @@ def collision_check():
             distance = ((i['current_x']-j['x'])**2 + (i['current_y'] - j['y'])**2)**0.5
 
             if distance <= 20:
-                power_up_asteroid=random.choice([0, 1 ])
+                if(power_up_asteroid==0):
+                    power_up_asteroid=random.choice([0, 1 ])
                 score += 1
 
                 if i in bullets:
@@ -267,32 +262,32 @@ def collision_check():
 
 
 
+
+
 def collision_check_with_canon():
-    global aliens, angle, score,GameOver
+    global aliens, angle, score,GameOver,power_up_asteroid
     for i in aliens:
         x1, y1 = updated_points(700, 50, -100, angle)
         distance1 = ((i['x']-x1)**2 + (i['y'] - y1)**2)**0.5
         distance2 = ((i['x']-700)**2 + (i['y'] - 50)**2)**0.5
         if (distance1 <=10) or (distance2 <=50):
             GameOver=True
-            print('GameOver')
-            print('Score:',score)
-            score=0
+         
+            power_up_asteroid=0
             aliens=[]
 def animate():
     global bullets, alien_timer,asteroid_fall,x_target,y_target
     new_bullets = []
-
-    for bullet in bullets:
-        t = bullet['t']
-        px = bullet['x'] - bullet['vx'] * t
-        py = bullet['y'] + bullet['vy'] * t - 0.5 * g * t ** 2
-        bullet['current_x'] = px
-        bullet['current_y'] = py
-
-        if px >= -1 and py >= -1:
-            bullet['t'] += bullet_speed
-            new_bullets.append(bullet)
+    if GameOver==False:
+        for bullet in bullets:
+            t = bullet['t']
+            px = bullet['x'] - bullet['vx'] * t
+            py = bullet['y'] + bullet['vy'] * t - 0.5 * g * t ** 2
+            bullet['current_x'] = px
+            bullet['current_y'] = py
+            if px >= -1 and py >= -1:
+                bullet['t'] += bullet_speed
+                new_bullets.append(bullet)
 
         bullets = new_bullets
 
@@ -304,10 +299,9 @@ def animate():
             spawn_alien()
             alien_timer = 0
 
-
     
 
-    collision_check()
+        collision_check()
     fall_asterroid()
        
 
@@ -317,23 +311,6 @@ def animate():
 
 
 def keyboardListener(key, x, y):
-    global angle, bullets, GameOver,asteroid_fall
-
-    cannon_base_x, cannon_base_y = 700, 50
-    barrel_length = 100
-    bullet_x, bullet_y = compute_barrel_endpoints(cannon_base_x, cannon_base_y, -barrel_length, angle)
-    
-
-    if key == b' ': 
-        vx = v0 * math.cos(math.radians(angle))
-        vy = v0 * math.sin(math.radians(angle))
-          
-        bullets.append({'x':bullet_x,'y':bullet_y,"vx":vx,"vy":vy,"t":0,"currnet_x":bullet_x,"current_y":bullet_y})
-    elif key == b'w':  
-        angle = min(angle + 5, 90)
-    elif key == b's':  
-        angle = max(angle - 5, 0)
-
     global angle, bullets,GameOver,asteroid_fall
     if GameOver==False:
         if key == b' ': 
@@ -346,7 +323,6 @@ def keyboardListener(key, x, y):
         elif key == b's':  
             angle = max(angle - 5, 0)
    
-
     glutPostRedisplay()
 
 def mouseListener(button, state, x, y):	
@@ -390,7 +366,7 @@ def iterate():
     glLoadIdentity()
 
 def display():
-    global bullets,GameOver,asteroid_fall,power_up_asteroid,x_astro,y_astro
+    global bullets,GameOver,asteroid_fall,power_up_asteroid,x_astro,y_astro,score
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glClearColor(0.0, 0.0, 0.0, 0.0)
         
@@ -411,7 +387,8 @@ def display():
        render_text(100, 510, f"You have got an asteroid to attack..", color=(0, 1, 0))   
 
     if GameOver: 
-        render_text(300,300, f"Game Over...", color=(1, 0, 0))   
+        render_text(300,300, f"Game Over...", color=(1, 0, 0)) 
+        render_text(300, 350, f"Final Score: {score}", color=(1, 1, 1))   
     if asteroid_fall:
        draw_asteroid()
 
