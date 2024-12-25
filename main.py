@@ -18,6 +18,7 @@ aliens = []
 alien_speed = 0.5
 alien_spawn_time = 80
 alien_timer = 0
+score = 0
 
 def zone_check(x0,y0,x1,y1):
     x_t0 = x0
@@ -130,18 +131,21 @@ def draw_alien(x,y):
     mpl(x,40,x+r,y)
 
 def spawn_alien():
-    global alien_head
     x = random.randint(30,200)
     aliens.append({'x': x, 'y': 80})
 
-# def collision_check():
-#     global bullets, aliens
+def collision_check():
+    global bullets, aliens
 
-#     # Iterate through each bullet
-#     for i in bullets:
+    for i in bullets:
 
-#         for j in aliens:
-#             distance = i['f']
+        for j in aliens:
+            distance = ((i['current_x']-j['x'])**2 + (i['current_y'] - j['y'])**2)**0.5
+
+            if distance <= 20:
+                score += 1
+                bullets.remove(i)
+                aliens.remove(j)
 
 
 def animate():
@@ -151,6 +155,8 @@ def animate():
         t = bullet['t']
         px = bullet['x'] - bullet['vx'] * t
         py = bullet['y'] + bullet['vy'] * t - 0.5 * g * t ** 2
+        bullet['current_x'] = px
+        bullet['current_y'] = py
 
 
 # def compute_barrel_endpoints(x0, y0, length, angle):
@@ -199,10 +205,8 @@ def draw_cannon():
     alien_timer += 1
     if alien_timer >= alien_spawn_time:
         spawn_alien()
-        alien_timer = 0
-
-    # collision_check()
-
+        alien_timer = 
+    collision_check()
     
     glutPostRedisplay()
 
@@ -213,7 +217,7 @@ def keyboardListener(key, x, y):
     if key == b' ': 
         vx = v0 * math.cos(math.radians(angle))
         vy = v0 * math.sin(math.radians(angle))
-        bullets.append({'x':750,'y':50,"vx":vx,"vy":vy,"t":0})
+        bullets.append({'x':750,'y':50,"vx":vx,"vy":vy,"t":0,"currnet_x":750,"current_y":50})
     elif key == b'w':  
         angle = min(angle + 5, 90) 
     elif key == b's':  
@@ -289,3 +293,4 @@ glutIdleFunc(animate)
 # glutMouseFunc(mouseListener)
 glutKeyboardFunc(keyboardListener)
 glutMainLoop()
+
