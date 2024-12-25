@@ -22,6 +22,8 @@ alien_spawn_time = 120
 alien_timer = 0
 score = 0
 GameOver=False
+bullet_speed = 0.05
+flag = True
  
 def zone_check(x0,y0,x1,y1):
     x_t0 = x0
@@ -159,7 +161,6 @@ def draw_cannon():
     mpl(int(x0), int(y0)-10, int(x1), int(y1)-30)
     mpc(x0,y0,10)
 
-# Draw the asteroid using generated vertices
 def draw_asteroid():
     global x_astro,y_astro
     glPointSize(2)
@@ -222,7 +223,7 @@ def spawn_alien():
     aliens.append({'x': x, 'y': 80})
 
 def collision_check():
-    global bullets, aliens,score,power_up_asteroid
+    global bullets, aliens,score, alien_spawn_time,alien_speed,flag,power_up_asteroid
 
     for i in bullets:
 
@@ -230,24 +231,49 @@ def collision_check():
             distance = ((i['current_x']-j['x'])**2 + (i['current_y'] - j['y'])**2)**0.5
 
             if distance <= 20:
-                power_up_asteroid=random.choice([0, 1 ])
+                if(power_up_asteroid==0):
+                    power_up_asteroid=random.choice([0, 1 ])
                 score += 1
-                bullets.remove(i) 
-                aliens.remove(j)
+
+                if i in bullets:
+                    bullets.remove(i)
+                if j in aliens:
+                    aliens.remove(j)
+    
+    if score == 30 and flag:
+        alien_spawn_time -= 30
+        alien_speed += 2
+        flag = False
+        print(score)
+    if score == 20 and flag:
+        alien_spawn_time -=10
+        alien_speed += 0.5
+        flag = False
+        print(score)
+    elif score == 10 and flag:
+        alien_spawn_time -=10
+        alien_speed += 0.5
+        flag = False
+        print(score)
+    elif 20>score>10:
+        flag = True
+    elif 30>score>20:
+        flag = True
+
+
 
 
 
 def collision_check_with_canon():
-    global aliens, angle, score,GameOver
+    global aliens, angle, score,GameOver,power_up_asteroid
     for i in aliens:
         x1, y1 = updated_points(700, 50, -100, angle)
         distance1 = ((i['x']-x1)**2 + (i['y'] - y1)**2)**0.5
         distance2 = ((i['x']-700)**2 + (i['y'] - 50)**2)**0.5
         if (distance1 <=10) or (distance2 <=50):
             GameOver=True
-            print('GameOver')
-            print('Score:',score)
-            score=0
+         
+            power_up_asteroid=0
             aliens=[]
 def animate():
     global bullets, alien_timer,asteroid_fall,x_target,y_target
@@ -340,7 +366,7 @@ def iterate():
     glLoadIdentity()
 
 def display():
-    global bullets,GameOver,asteroid_fall,power_up_asteroid,x_astro,y_astro
+    global bullets,GameOver,asteroid_fall,power_up_asteroid,x_astro,y_astro,score
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glClearColor(0.0, 0.0, 0.0, 0.0)
         
@@ -361,7 +387,8 @@ def display():
        render_text(100, 510, f"You have got an asteroid to attack..", color=(0, 1, 0))   
 
     if GameOver: 
-        render_text(300,300, f"Game Over...", color=(1, 0, 0))   
+        render_text(300,300, f"Game Over...", color=(1, 0, 0)) 
+        render_text(300, 350, f"Final Score: {score}", color=(1, 1, 1))   
     if asteroid_fall:
        draw_asteroid()
 
