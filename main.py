@@ -14,12 +14,6 @@ v0 = 85
 angle = 45 
 bullets = []
 
-def init():
-    glClearColor(0.0, 0.0, 0.0, 1.0)
-    gluOrtho2D(-1.0, 1.0, -1.0, 1.0)
-
-
-
 def draw_projectile(x, y):
     glColor3f(0.0, 1.0, 0.0)
     glPointSize(5)
