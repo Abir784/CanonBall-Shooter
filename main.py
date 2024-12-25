@@ -13,13 +13,10 @@ g = 9.8
 v0 = 85
 angle = 45 
 bullets = []
-
-def draw_projectile(x, y):
-    glColor3f(0.0, 1.0, 0.0)
-    glPointSize(5)
-    glBegin(GL_POINTS)
-    glVertex2f(x, y)
-    glEnd()
+aliens = [] 
+alien_speed = 0.5
+alien_spawn_time = 80
+alien_timer = 0
 
 def zone_check(x0,y0,x1,y1):
     x_t0 = x0
@@ -110,35 +107,68 @@ def mpc(cx, cy, r):
         x += 1
 
 
-def collision_check():
-    global circle_info, paused, score,missed,firing 
+def draw_projectile(x, y):
+    r = 5
+    glColor3f(0.0, 1.0, 0.0)
+    glPointSize(2)
+    glBegin(GL_POINTS)
+    mpc(x,y,r)
+    glEnd()
 
-    for circle in circle_info:
-        distance = ((circle[0] - fireset[0])**2 + (circle[1] - fireset[1])**2)**0.5
+def showbullet():
+    for bullet in bullets:
+        t = bullet['t']
+        px = bullet['x'] - bullet['vx'] * t
+        py = bullet['y'] + bullet['vy'] * t - 0.5 * g * t ** 2
+        draw_projectile(px, py)
 
-        if distance <= fireset[2] + circle[2]:
-            fireset[1] = 215
-            circle_info.remove(circle)
-            score += 1
-            firing = False
-
-            print("Score: ",score)
-        
-        if (290+rocket_move<= circle[0]<= 430+rocket_move) and (circle[1]+circle[2] <= 210):
-            print("game over hit by asteroid")
-            print("Score : ",score)
-            os._exit(0)
-
-def draw_allien():
+def draw_alien(x,y):
     r = 10
-    mpc(30,80,r)
-    mpl(20,80,30,40)
-    mpl(30,40,40,80)
-    mpl(35,90,45,95) #antena
+    mpc(x,y,r)
+    mpl(x-r,y,x,40)
+    mpl(x,40,x+r,y)
+
+def spawn_alien():
+    global alien_head
+    x = random.randint(30,200)
+    aliens.append({'x': x, 'y': 80})
+
+# def collision_check():
+#     global bullets, aliens
+
+#     # Iterate through each bullet
+#     for i in bullets:
+
+#         for j in aliens:
+#             distance = i['f']
 
 
+def animate():
+    global bullets, alien_timer
+    new_bullets = []
+    for bullet in bullets:
+        t = bullet['t']
+        px = bullet['x'] - bullet['vx'] * t
+        py = bullet['y'] + bullet['vy'] * t - 0.5 * g * t ** 2
 
+        if px >= -1 and py >= -1:
+            bullet['t'] += 0.08
+            new_bullets.append(bullet)
+
+    bullets = new_bullets
+
+    for alien in aliens:
+        alien['x'] += alien_speed 
+
+    alien_timer += 1
+    if alien_timer >= alien_spawn_time:
+        spawn_alien()
+        alien_timer = 0
+
+    # collision_check()
     
+    glutPostRedisplay()
+
 
 def keyboardListener(key, x, y):
     global angle, bullets
@@ -154,7 +184,7 @@ def keyboardListener(key, x, y):
     glutPostRedisplay()
 
 def mouseListener(button, state, x, y):	
-    global paused,rocket_move,circle_info,fireset
+    global paused,rocket_move,aliens,fireset
     y = abs(y - height)
     if button==GLUT_LEFT_BUTTON:
         if(state == GLUT_DOWN):
@@ -179,10 +209,6 @@ def mouseListener(button, state, x, y):
 
     glutPostRedisplay()
 
-def timer(t):
-    glutPostRedisplay()
-    glutTimerFunc(20, timer, 0)
-
 def iterate():
     glViewport(0, 0, width, height)
     glMatrixMode(GL_PROJECTION)
@@ -191,11 +217,9 @@ def iterate():
     glMatrixMode (GL_MODELVIEW)
     glLoadIdentity()
 
-
 def display():
     global bullets
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    # glClearColor(1, 1, 1, 1) 
     glClearColor(0.0, 0.0, 0.0, 0.0)
     
     glLoadIdentity()
@@ -204,26 +228,14 @@ def display():
 
     # my work
     # navigation_bar()
-    new_bullets = []
-    for bullet in bullets:
-        t = bullet['t']
-        px = bullet['x'] - bullet['vx'] * t
-        py = bullet['y'] + bullet['vy'] * t - 0.5 * g * t ** 2
-
-        if px >= -1 and py >=-1 :
-            draw_projectile(px, py)
-            bullet['t'] += 0.05
-            new_bullets.append(bullet)
-
-    bullets = new_bullets
+    showbullet()
     glPointSize(1)
     glBegin(GL_POINTS)
     glColor(1,0,0)
-    draw_allien()
+    for alien in aliens:
+        draw_alien(alien['x'], alien['y'])
     glEnd()
     glutSwapBuffers()  
-
-
 
 glutInit()
 glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
@@ -231,10 +243,13 @@ glutInitWindowSize(width, height)
 glutInitWindowPosition(0, 0)
 wind = glutCreateWindow(b"Lab Assignment 2")
 glutDisplayFunc(display)
-# glutIdleFunc(animate)
+glutIdleFunc(animate)
 # glutSpecialFunc(specialKeyListener)
 # glutMouseFunc(mouseListener)
 glutKeyboardFunc(keyboardListener)
-glutTimerFunc(10, timer, 0)
 glutMainLoop()
+
+
+
+
 
