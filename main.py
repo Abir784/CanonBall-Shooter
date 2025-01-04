@@ -6,6 +6,8 @@ import math, random
 
 height = 600
 width = 800
+paused = False
+
 
 x_astro,y_astro=727,488
 x_target,y_target=0,0
@@ -113,6 +115,27 @@ def mpc(cx, cy, r):
             y -= 1
         x += 1
 
+def navigation_bar():
+    glBegin(GL_POINTS)
+    glColor(0,1,1)
+    mpl(10,height-25,50,height-25)
+    mpl(10,height-25,20,height-10)
+    mpl(10,height-25,20,height-40)
+
+    glColor(1,1,0)
+    if paused:
+        mpl(370,height,370,height-50)
+        mpl(350,height-25,370,height)
+        mpl(350,height-25,370,height-50)
+
+    else:
+        mpl(350,height,350,height-50)
+        mpl(370,height,370,height-50)
+
+    glColor3f(1, 0, 0)  
+    mpl(width-50,height,width,height-50)
+    mpl(width-50,height-50,width,height)
+    glEnd()
 
 def draw_projectile(x, y):
     r = 5
@@ -278,31 +301,32 @@ def collision_check_with_canon():
 def animate():
     global bullets, alien_timer,asteroid_fall,x_target,y_target
     new_bullets = []
-    if GameOver==False:
-        for bullet in bullets:
-            t = bullet['t']
-            px = bullet['x'] - bullet['vx'] * t
-            py = bullet['y'] + bullet['vy'] * t - 0.5 * g * t ** 2
-            bullet['current_x'] = px
-            bullet['current_y'] = py
-            if px >= -1 and py >= -1:
-                bullet['t'] += bullet_speed
-                new_bullets.append(bullet)
+    if not paused:
+        if GameOver==False:
+            for bullet in bullets:
+                t = bullet['t']
+                px = bullet['x'] - bullet['vx'] * t
+                py = bullet['y'] + bullet['vy'] * t - 0.5 * g * t ** 2
+                bullet['current_x'] = px
+                bullet['current_y'] = py
+                if px >= -1 and py >= -1:
+                    bullet['t'] += bullet_speed
+                    new_bullets.append(bullet)
 
-        bullets = new_bullets
+            bullets = new_bullets
 
-        for alien in aliens:
-            alien['x'] += alien_speed 
+            for alien in aliens:
+                alien['x'] += alien_speed 
 
-        alien_timer += 1
-        if alien_timer >= alien_spawn_time:
-            spawn_alien()
-            alien_timer = 0
+            alien_timer += 1
+            if alien_timer >= alien_spawn_time:
+                spawn_alien()
+                alien_timer = 0
 
-    
+        
 
-        collision_check()
-    fall_asterroid()
+            collision_check()
+        fall_asterroid()
        
 
     
@@ -312,7 +336,7 @@ def animate():
 
 def keyboardListener(key, x, y):
     global angle, bullets,GameOver,asteroid_fall
-    if GameOver==False:
+    if GameOver==False and not paused:
         if key == b' ': 
             vx = v0 * math.cos(math.radians(angle))
             vy = v0 * math.sin(math.radians(angle))
@@ -326,16 +350,14 @@ def keyboardListener(key, x, y):
     glutPostRedisplay()
 
 def mouseListener(button, state, x, y):	
-    global paused,rocket_move,aliens,fireset,power_up_asteroid,asteroid_fall,x_target,y_target,asteroids
+    global paused,rocket_move,aliens,fireset,power_up_asteroid,asteroid_fall,x_target,y_target,asteroids,bullets,aliens
     y = abs(y - height)
     if button==GLUT_LEFT_BUTTON:
         if(state == GLUT_DOWN):
                 if height-50 <= y <= height:
                     if 0<= x <= 50:
-                        fireset[1] = 215
-                        rocket_move = 0
-                        circle_info = []
-                        score = 0
+                        bullets = []
+                        aliens = []
                     elif 350 <= x <= 370:
                         if paused:
                             paused = False
@@ -374,6 +396,8 @@ def display():
     glLoadIdentity()
     gluLookAt(0, 0, 200, 0, 0, 0, 0, 1, 0)
     iterate()
+
+    navigation_bar()
     collision_check_with_canon()
     glColor(0,1,0)
     if GameOver:
