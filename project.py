@@ -109,6 +109,56 @@ def draw_projectile(x, y):
     mpc(x, y, r)
     glEnd()
 
+def draw_asteroid():
+    global x_astro,y_astro
+    glPointSize(2)
+    glColor(1,0,1)
+    glBegin(GL_POINTS)
+    
+    mpc(x_astro,y_astro,20)
+    mpl(x_astro+20,y_astro,x_astro+40,y_astro+40)
+    mpl(x_astro,y_astro+20,x_astro+40,y_astro+40)
+    mpl(x_astro+13,y_astro+15,x_astro+40,y_astro+40)
+
+   #jagged design
+
+    mpl(x_astro-20,y_astro,x_astro,y_astro)
+    mpl(x_astro-20,y_astro-5,x_astro,y_astro)
+    mpl(x_astro-20,y_astro+5,x_astro,y_astro)
+    mpl(x_astro-20,y_astro-8,x_astro,y_astro)
+    mpl(x_astro-20,y_astro+8,x_astro,y_astro)
+
+    mpl(x_astro-10,y_astro,x_astro,y_astro)
+    mpl(x_astro-10,y_astro-5,x_astro,y_astro)
+    mpl(x_astro-10,y_astro+5,x_astro,y_astro)
+    mpl(x_astro-10,y_astro-8,x_astro,y_astro)
+    mpl(x_astro-10,y_astro+8,x_astro,y_astro)
+    glEnd()
+
+def fall_asterroid():
+    global x_astro, y_astro, asteroids, asteroid_fall,score
+    if asteroid_fall:
+       for i in asteroids:
+            for j in aliens:
+                    target_x, target_y = i
+                    a, b = diff_factor(x_astro, y_astro, target_x, target_y)
+                    x_astro += a
+                    y_astro += b
+                    distance = ((j['x']-x_astro)**2 + (j['y'] - y_astro)**2)**0.5
+                    if distance <= 20:
+                        score += 1
+                        x_astro, y_astro = target_x, target_y
+                        asteroid_fall = False  #
+                        asteroids.remove(i) 
+                        aliens.remove(j)
+                        x_astro,y_astro=727,428
+                    elif abs(x_astro - target_x) < 1 and abs(y_astro - target_y) < 1:
+                        x_astro, y_astro = target_x, target_y
+                        asteroid_fall = False  
+                        asteroids.remove(i)
+                        x_astro,y_astro=727,428
+                        break
+
 def showbullet():
     for bullet in bullets:
         t = bullet['t']
@@ -127,6 +177,17 @@ def updated_points(x0, y0, length, angle):
     x1 = x0 + length * math.cos(-angle_rad)
     y1 = y0 + length * math.sin(-angle_rad)
     return x1, y1
+
+def diff_factor(x1, y1, x0, y0):
+    dx = x0 - x1
+    dy = y0 - y1
+    
+    magnitude = math.sqrt(dx**2 + dy**2)
+    
+    dx_normalized = dx / magnitude if magnitude != 0 else 0
+    dy_normalized = dy / magnitude if magnitude != 0 else 0
+    
+    return dx_normalized, dy_normalized
 
 def draw_cannon():
     global angle
@@ -208,7 +269,7 @@ def draw_boss_bullets():
     glEnd()
 
 def collision_check():
-    global bullets, aliens, boss_enemy, boss_health, boss_spawned, score, boss_respawn_score, boss_bullets
+    global bullets, aliens, boss_enemy, boss_health, boss_spawned, score, boss_respawn_score, boss_bullets,power_up_asteroid
     i = 0
     while i < len(bullets):
         bullet = bullets[i]
@@ -218,6 +279,8 @@ def collision_check():
             alien = aliens[j]
             distance = ((bullet['current_x'] - alien['x'])**2 + (bullet['current_y'] - alien['y'])**2)**0.5
             if distance <= 20:
+                if(power_up_asteroid==0):
+                    power_up_asteroid=random.choice([0, 1 ])
                 score += 1
                 bullets.pop(i)
                 aliens.pop(j)
@@ -243,8 +306,8 @@ def collision_check_with_canon():
     global aliens, angle, score, GameOver, lives
     for i in aliens:
         x1, y1 = updated_points(700, 50, -100, angle)
-        distance1 = ((i['x'] - x1) * 2 + (i['y'] - y1) * 2) ** 0.5
-        distance2 = ((i['x'] - 700) * 2 + (i['y'] - 50) * 2) ** 0.5
+        distance1 = ((i['x'] - x1) ** 2 + (i['y'] - y1) ** 2) ** 0.5
+        distance2 = ((i['x'] - 700) **2 + (i['y'] - 50) ** 2) ** 0.5
         if (distance1 <= 10) or (distance2 <= 50):
             lives -= 1
             aliens.remove(i)
@@ -298,6 +361,7 @@ def display():
     glPointSize(2)
     glBegin(GL_POINTS)
     draw_cannon()
+    
     glEnd()
     render_text(10, 510, f"Score: {score}", color=(1, 1, 1))
     render_text(650, 510, f"Lives: {lives}", color=(1, 0, 0))
@@ -308,7 +372,14 @@ def display():
     if boss_enemy:
         draw_boss(boss_enemy['x'], boss_enemy['y'])
         draw_boss_bullets()
+    if power_up_asteroid == 1:
+       render_text(100, 450, f"You have got an asteroid to attack..", color=(0, 1, 0))   
+    
+
+
     if not GameOver:
+        if asteroid_fall:
+          draw_asteroid()
         showbullet()
         glPointSize(1)
         glBegin(GL_POINTS)
@@ -338,7 +409,6 @@ def animate():
     bullets = new_bullets
     for alien in aliens:
         alien['x'] += alien_speed
-    
     if boss_enemy:
         boss_enemy['x'] += boss_speed
         if boss_enemy['x'] > width:
@@ -358,6 +428,10 @@ def animate():
         spawn_alien()
         alien_timer = 0
     collision_check()
+    fall_asterroid()
+    collision_check_with_canon()
+       
+
     glutPostRedisplay()
 
 glutInit()

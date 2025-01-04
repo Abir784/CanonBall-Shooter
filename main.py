@@ -20,6 +20,8 @@ g = 9.8
 v0 = 85
 angle = 45
 bullets = []
+aliens = [] 
+alien_speed = 0.5
 aliens = []
 alien_speed = 0.1
 alien_spawn_time = 120
@@ -243,14 +245,47 @@ def collision_check_with_canon():
     global aliens, angle, score, GameOver, lives
     for i in aliens:
         x1, y1 = updated_points(700, 50, -100, angle)
-        distance1 = ((i['x'] - x1) * 2 + (i['y'] - y1) * 2) ** 0.5
-        distance2 = ((i['x'] - 700) * 2 + (i['y'] - 50) * 2) ** 0.5
-        if (distance1 <= 10) or (distance2 <= 50):
-            lives -= 1
-            aliens.remove(i)
-            if lives <= 0:
-                GameOver = True
-            break
+        distance1 = ((i['x']-x1)**2 + (i['y'] - y1)**2)**0.5
+        distance2 = ((i['x']-700)**2 + (i['y'] - 50)**2)**0.5
+        if (distance1 <=10) or (distance2 <=50):
+            GameOver=True
+         
+            power_up_asteroid=0
+            aliens=[]
+def animate():
+    global bullets, alien_timer,asteroid_fall,x_target,y_target
+    new_bullets = []
+    if GameOver==False:
+        for bullet in bullets:
+            t = bullet['t']
+            px = bullet['x'] - bullet['vx'] * t
+            py = bullet['y'] + bullet['vy'] * t - 0.5 * g * t ** 2
+            bullet['current_x'] = px
+            bullet['current_y'] = py
+            if px >= -1 and py >= -1:
+                bullet['t'] += 0.02  
+                new_bullets.append(bullet)
+
+        bullets = new_bullets
+
+        for alien in aliens:
+            alien['x'] += alien_speed 
+
+        alien_timer += 1
+        if alien_timer >= alien_spawn_time:
+            spawn_alien()
+            alien_timer = 0
+
+    
+
+        collision_check()
+    fall_asterroid()
+       
+
+    
+    
+    glutPostRedisplay()
+
 
 def keyboardListener(key, x, y):
     global angle, bullets, GameOver
