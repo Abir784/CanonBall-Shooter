@@ -344,17 +344,17 @@ def collision_check():
 
     if score == 30 and flag:
         alien_spawn_time -= 30
-        alien_speed += 2
+        alien_speed += 0.5
         flag = False
         print(score)
     if score == 20 and flag:
         alien_spawn_time -=10
-        alien_speed += 0.5
+        alien_speed += 0.01
         flag = False
         print(score)
     elif score == 10 and flag:
         alien_spawn_time -=10
-        alien_speed += 0.5
+        alien_speed += 0.01
         flag = False
         print(score)
     elif 20>score>10:
