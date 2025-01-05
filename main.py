@@ -174,7 +174,7 @@ def fall_asterroid():
                     distance = ((j['x']-x_astro)**2 + (j['y'] - y_astro)**2)**0.5
                     if boss_enemy:    
                        distance2=((boss_enemy['x']-x_astro)**2 + (boss_enemy['y'] - y_astro)**2)**0.5
-                       if distance2<40:
+                       if distance2<=40:
                             score += 10
                             boss_enemy = None
                             boss_spawned = False
@@ -344,17 +344,17 @@ def collision_check():
 
     if score == 30 and flag:
         alien_spawn_time -= 30
-        alien_speed += 0.5
+        alien_speed += 2
         flag = False
         print(score)
     if score == 20 and flag:
         alien_spawn_time -=10
-        alien_speed += 0.01
+        alien_speed += 0.5
         flag = False
         print(score)
     elif score == 10 and flag:
         alien_spawn_time -=10
-        alien_speed += 0.01
+        alien_speed += 0.5
         flag = False
         print(score)
     elif 20>score>10:
@@ -398,21 +398,6 @@ def mouseListener(button, state, x, y):
         if(state == GLUT_DOWN):
                 if height-50 <= y <= height:
                     if 0<= x <= 50:
-                        # bullets = []
-                        # aliens = []
-                        # paused = True
-                        # GameOver = False
-                        # boss_enemy = None
-                        # boss_spawned=False
-                        # power_up_asteroid=0
-                        # asteroid_fall=False
-                        # boss_health = 5
-                        # lives = 3
-                        # alien_speed=0.01
-                        # boss_bullets = []
-                        # score = 0
-
-                        ##################
                         boss_bullets = []
                         boss_bullet_speed = 0.3
                         boss_shoot_timer = 0
@@ -436,7 +421,6 @@ def mouseListener(button, state, x, y):
                         GameOver = False
                         bullet_speed = 0.05
                         flag = True
-                        high_score = 0
                         boss_enemy = None
                         boss_health = 5
                         boss_speed = 0.1
@@ -456,7 +440,7 @@ def mouseListener(button, state, x, y):
         if power_up_asteroid >0:
             if button == GLUT_LEFT_BUTTON:
                 if state == GLUT_DOWN:
-                    if not (0<=x<=370 and height-50 <= y <= height):
+                    if not (0<=x<=width and height-80 <= y <= height):
                             if not paused:
                                 asteroid_fall=True
                                 x_target,y_target=x,y
