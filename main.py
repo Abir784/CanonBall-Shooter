@@ -21,7 +21,7 @@ v0 = 85
 angle = 45
 bullets = []
 aliens = []
-alien_speed = 0.5
+alien_speed = 0.01
 alien_spawn_time = 120
 alien_timer = 0
 score = 0
@@ -163,7 +163,7 @@ def draw_asteroid():
     glEnd()
 
 def fall_asterroid():
-    global x_astro, y_astro, asteroids, asteroid_fall,score
+    global x_astro, y_astro, asteroids, asteroid_fall,score,boss_enemy,boss_spawned,boss_respawn_score,boss_health
     if asteroid_fall:
        for i in asteroids:
             for j in aliens:
@@ -172,6 +172,19 @@ def fall_asterroid():
                     x_astro += a
                     y_astro += b
                     distance = ((j['x']-x_astro)**2 + (j['y'] - y_astro)**2)**0.5
+                    if boss_enemy:    
+                       distance2=((boss_enemy['x']-x_astro)**2 + (boss_enemy['y'] - y_astro)**2)**0.5
+                       if distance2<40:
+                            score += 10
+                            boss_enemy = None
+                            boss_spawned = False
+                            boss_respawn_score = score + 10
+                            boss_health = 3
+                            boss_bullets.clear()
+                            x_astro, y_astro = target_x, target_y
+                            asteroid_fall = False  
+                            asteroids.remove(i) 
+                            x_astro,y_astro=727,428
                     if distance <= 20:
                         score += 1
                         x_astro, y_astro = target_x, target_y
@@ -378,21 +391,58 @@ def keyboardListener(key, x, y):
 
 
 def mouseListener(button, state, x, y):	
-    global paused,rocket_move,aliens,fireset,power_up_asteroid,asteroid_fall,x_target,y_target,asteroids,bullets,aliens,GameOver,boss_enemy,lives,boss_health,boss_bullets,score
+    global boss_bullets, boss_bullet_speed, boss_shoot_timer, boss_shoot_interval, lives, boss_respawn_score, x_astro, y_astro, x_target, y_target, asteroid_fall, asteroids, power_up_asteroid, g, v0, angle, bullets, aliens, alien_speed, alien_spawn_time, alien_timer, score, GameOver, bullet_speed, flag, high_score, boss_enemy, boss_health, boss_speed, boss_spawned, paused
+    
     y = abs(y - height)
     if button==GLUT_LEFT_BUTTON:
         if(state == GLUT_DOWN):
                 if height-50 <= y <= height:
                     if 0<= x <= 50:
+                        # bullets = []
+                        # aliens = []
+                        # paused = True
+                        # GameOver = False
+                        # boss_enemy = None
+                        # boss_spawned=False
+                        # power_up_asteroid=0
+                        # asteroid_fall=False
+                        # boss_health = 5
+                        # lives = 3
+                        # alien_speed=0.01
+                        # boss_bullets = []
+                        # score = 0
+
+                        ##################
+                        boss_bullets = []
+                        boss_bullet_speed = 0.3
+                        boss_shoot_timer = 0
+                        boss_shoot_interval = 120
+                        lives = 3
+                        boss_respawn_score = 10
+                        x_astro, y_astro = 727, 488
+                        x_target, y_target = 0, 0
+                        asteroid_fall = False
+                        asteroids = []
+                        power_up_asteroid = 0
+                        g = 9.8
+                        v0 = 85
+                        angle = 45
                         bullets = []
                         aliens = []
-                        paused = True
+                        alien_speed = 0.01
+                        alien_spawn_time = 120
+                        alien_timer = 0
+                        score = 0
                         GameOver = False
+                        bullet_speed = 0.05
+                        flag = True
+                        high_score = 0
                         boss_enemy = None
                         boss_health = 5
-                        lives = 3
-                        boss_bullets = []
-                        score = 0
+                        boss_speed = 0.1
+                        boss_spawned = False
+                        paused = False
+
                     elif 350 <= x <= 370:
                         if paused:
                             paused = False
@@ -403,13 +453,20 @@ def mouseListener(button, state, x, y):
                     elif width-50 <= x <= width:
                         print("exited")
                         os._exit(0)
-                if power_up_asteroid >0:
-                    if button == GLUT_LEFT_BUTTON:
-                        if state == GLUT_DOWN:
-                            asteroid_fall=True
-                            x_target,y_target=x,y
-                            asteroids.append([x_target,y_target])
-                            power_up_asteroid  -=1
+        if power_up_asteroid >0:
+            if button == GLUT_LEFT_BUTTON:
+                if state == GLUT_DOWN:
+                    if not (0<=x<=370 and height-50 <= y <= height):
+                            if not paused:
+                                asteroid_fall=True
+                                x_target,y_target=x,y
+                                asteroids.append([x_target,y_target])
+                                power_up_asteroid  -=1
+                    
+
+
+                              
+                            
                             
 
     glutPostRedisplay()
@@ -447,15 +504,15 @@ def display():
     if GameOver:
         render_text(300, 300, f"Game Over!", color=(1, 0, 0))
         render_text(300, 350, f"Final Score: {score}", color=(1, 1, 1))
-    if boss_enemy:
-        draw_boss(boss_enemy['x'], boss_enemy['y'])
-        draw_boss_bullets()
-    if power_up_asteroid == 1:
-       render_text(100, 450, f"You have got an asteroid to attack..", color=(0, 1, 0))   
-    
+
 
 
     if not GameOver:
+        if boss_enemy:
+            draw_boss(boss_enemy['x'], boss_enemy['y'])
+            draw_boss_bullets()
+        if power_up_asteroid == 1:
+            render_text(100, 450, f"PowerUp!! Asteroid..", color=(0, 1, 0))   
         if asteroid_fall:
           draw_asteroid()
         showbullet()
