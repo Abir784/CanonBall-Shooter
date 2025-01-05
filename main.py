@@ -364,7 +364,7 @@ def collision_check_with_canon():
 
 def keyboardListener(key, x, y):
     global angle, bullets, GameOver
-    if not GameOver:
+    if not GameOver and not paused:
         if key == b' ':
             vx = v0 * math.cos(math.radians(angle))
             vy = v0 * math.sin(math.radians(angle))
@@ -376,18 +376,9 @@ def keyboardListener(key, x, y):
             angle = max(angle - 5, 0)
     glutPostRedisplay()
 
-# def mouseListener(button, state, x, y):
-#     global asteroid_fall, x_target, y_target, asteroids, power_up_asteroid
-#     y = abs(y - height)
-#     if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:
-#         if power_up_asteroid > 0:
-#             asteroid_fall = True
-#             x_target, y_target = x, y
-#             asteroids.append([x_target, y_target])
-#             power_up_asteroid -= 1
-#     glutPostRedisplay()
+
 def mouseListener(button, state, x, y):	
-    global paused,rocket_move,aliens,fireset,power_up_asteroid,asteroid_fall,x_target,y_target,asteroids,bullets,aliens,GameOver
+    global paused,rocket_move,aliens,fireset,power_up_asteroid,asteroid_fall,x_target,y_target,asteroids,bullets,aliens,GameOver,boss_enemy,lives,boss_health,boss_bullets,score
     y = abs(y - height)
     if button==GLUT_LEFT_BUTTON:
         if(state == GLUT_DOWN):
@@ -397,6 +388,11 @@ def mouseListener(button, state, x, y):
                         aliens = []
                         paused = True
                         GameOver = False
+                        boss_enemy = None
+                        boss_health = 5
+                        lives = 3
+                        boss_bullets = []
+                        score = 0
                     elif 350 <= x <= 370:
                         if paused:
                             paused = False
